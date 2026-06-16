@@ -1,32 +1,393 @@
-bash
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TipOff — Sports Business Intel</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0f0f13; --surface: #1a1a22; --surface2: #222230;
+  --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+  --text: #f0f0f0; --text2: #9a9aaa; --text3: #5a5a6a;
+  --gold: #C8A96E; --gold-dim: rgba(200,169,110,0.12);
+  --radius: 10px; --radius-sm: 6px;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+#ticker-bar { background: #07070a; border-bottom: 1px solid var(--border); height: 34px; display: flex; align-items: center; padding: 0 1.5rem; gap: 12px; overflow: hidden; flex-shrink: 0; }
+.ticker-label { font-size: 10px; font-weight: 600; color: var(--gold); text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap; }
+.ticker-sep { width: 1px; height: 14px; background: #333; flex-shrink: 0; }
+.ticker-wrap { overflow: hidden; flex: 1; }
+.ticker-inner { display: inline-block; white-space: nowrap; font-size: 11px; color: var(--text3); animation: scroll-ticker 50s linear infinite; }
+@keyframes scroll-ticker { from { transform: translateX(100vw); } to { transform: translateX(-100%); } }
+#layout { display: flex; flex: 1; overflow: hidden; height: calc(100vh - 34px); }
+#sidebar { width: 220px; min-width: 220px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+.brand-wrap { padding: 1.25rem 1.25rem 1rem; border-bottom: 1px solid var(--border); }
+.brand-name { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+.brand-tagline { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.nav-group { padding: 1rem 0.75rem 0.5rem; }
+.nav-group-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; padding: 0 0.5rem; margin-bottom: 0.35rem; }
+.nav-btn { display: flex; align-items: center; gap: 9px; width: 100%; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); border: none; background: none; color: var(--text2); font-size: 13px; cursor: pointer; text-align: left; transition: all 0.15s; }
+.nav-btn:hover { background: var(--surface2); color: var(--text); }
+.nav-btn.active { background: var(--gold-dim); color: var(--gold); font-weight: 500; }
+.nav-btn i { font-size: 16px; }
+.nav-badge { margin-left: auto; font-size: 10px; background: var(--gold); color: #0a0a0a; border-radius: 10px; padding: 1px 6px; font-weight: 600; display: none; }
+.sidebar-footer { margin-top: auto; padding: 1rem 1.25rem; border-top: 1px solid var(--border); font-size: 11px; color: var(--text3); }
+.live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #4ade80; margin-right: 6px; vertical-align: middle; }
+.live-dot.loading { background: var(--gold); animation: pulse 1s infinite; }
+#main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+#topbar { padding: 0.9rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+#page-title { font-size: 16px; font-weight: 600; color: var(--text); }
+#page-date { font-size: 12px; color: var(--text3); }
+#content { flex: 1; overflow-y: auto; padding: 1.5rem; }
+.tab { display: none; }
+.tab.active { display: block; }
+.filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; }
+.f-btn { font-size: 11px; padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border2); background: none; color: var(--text2); cursor: pointer; transition: all 0.15s; }
+.f-btn:hover { border-color: var(--gold); color: var(--text); }
+.f-btn.active { background: var(--gold); border-color: var(--gold); color: #0a0a0a; font-weight: 600; }
+.status-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text3); margin-bottom: 1rem; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.15rem; margin-bottom: 0.7rem; cursor: pointer; transition: border-color 0.15s; }
+.card:hover { border-color: var(--border2); }
+.card.open { border-color: var(--gold); }
+.card-meta { display: flex; align-items: center; gap: 7px; margin-bottom: 0.45rem; flex-wrap: wrap; }
+.badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+.b-boardroom { background: #2a0f2a; color: #e870d8; }
+.b-espn { background: #2a1500; color: #f5a030; }
+.b-sportico { background: #300e0e; color: #f07570; }
+.b-fos { background: #0d2e1e; color: #4ecf97; }
+.b-si { background: #1a2a1a; color: #70d070; }
+.b-on3 { background: #12103a; color: #9b7af0; }
+.b-cbssports { background: #1a1a2a; color: #7090f0; }
+.b-wsj { background: #050f1f; color: #50a0f0; }
+.b-ft { background: #1f0800; color: #f0a030; }
+.b-forbes { background: #121210; color: #d0d040; }
+.b-sbj { background: #08183a; color: #60a8f0; }
+.b-sportico2 { background: #300e0e; color: #f07570; }
+.b-athletic { background: #28250a; color: #d0c045; }
+.b-paste { background: #1f1208; color: var(--gold); }
+.card-time { font-size: 11px; color: var(--text3); margin-left: auto; }
+.card-title { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.45; margin-bottom: 0.35rem; }
+.card-title a { color: inherit; text-decoration: none; }
+.card-title a:hover { color: var(--gold); }
+.card-snippet { font-size: 12px; color: var(--text2); line-height: 1.65; }
+.analysis-wrap { display: none; margin-top: 0.9rem; padding-top: 0.9rem; border-top: 1px solid var(--border); }
+.card.open .analysis-wrap { display: block; }
+.ai-label { font-size: 10px; font-weight: 600; color: var(--gold); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 6px; }
+.ai-section { margin-bottom: 0.7rem; }
+.ai-section-title { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.3rem; }
+.ai-text { font-size: 12px; color: var(--text2); line-height: 1.65; }
+.key-facts { display: flex; flex-direction: column; gap: 4px; }
+.kf { font-size: 12px; color: var(--text2); line-height: 1.55; display: flex; gap: 8px; }
+.kf::before { content: "—"; color: var(--gold); flex-shrink: 0; }
+.gen-btn { font-size: 11px; padding: 6px 14px; border-radius: var(--radius-sm); border: 1px solid var(--gold); background: none; color: var(--gold); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.gen-btn:hover { background: var(--gold-dim); }
+.gen-btn:disabled { opacity: 0.5; cursor: default; }
+.pulse { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;}50%{opacity:0.3;} }
+.paste-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1.5rem; }
+.paste-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 0.25rem; display: flex; align-items: center; gap: 8px; }
+.paste-sub { font-size: 12px; color: var(--text3); margin-bottom: 0.9rem; line-height: 1.6; }
+.outlet-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 0.85rem; }
+.o-btn { font-size: 11px; padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border2); background: none; color: var(--text2); cursor: pointer; transition: all 0.15s; }
+.o-btn.sel { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
+textarea { width: 100%; min-height: 110px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px; font-family: inherit; padding: 0.75rem 0.9rem; resize: vertical; line-height: 1.6; }
+textarea:focus { outline: none; border-color: var(--gold); }
+.paste-actions { display: flex; align-items: center; gap: 10px; margin-top: 0.75rem; }
+.primary-btn { font-size: 13px; padding: 8px 18px; border-radius: var(--radius-sm); border: none; background: var(--gold); color: #0a0a0a; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
+.primary-btn:hover { opacity: 0.88; }
+.primary-btn:disabled { opacity: 0.45; cursor: default; }
+#paste-status { font-size: 12px; color: var(--text3); }
+.agency-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.7rem; }
+.agency-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.15rem; cursor: pointer; transition: border-color 0.15s; }
+.agency-card:hover { border-color: var(--border2); }
+.agency-card.open { border-color: var(--gold); }
+.agency-head { display: flex; align-items: center; gap: 10px; margin-bottom: 0.65rem; }
+.agency-avatar { width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--surface2); border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--gold); flex-shrink: 0; }
+.agency-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.agency-focus { font-size: 11px; color: var(--text3); }
+.agency-body { display: none; padding-top: 0.65rem; border-top: 1px solid var(--border); }
+.agency-card.open .agency-body { display: block; }
+.agency-overview { font-size: 12px; color: var(--text2); line-height: 1.6; margin-bottom: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
+.agency-section { margin-bottom: 0.65rem; }
+.agency-section-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.25rem; font-weight: 600; }
+.agency-section-text { font-size: 12px; color: var(--text2); line-height: 1.5; }
+.moves-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.45rem; font-weight: 600; }
+.move { display: flex; gap: 8px; font-size: 12px; color: var(--text2); line-height: 1.55; padding: 5px 0; border-bottom: 1px solid var(--border); }
+.move:last-child { border-bottom: none; }
+.move-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); margin-top: 6px; flex-shrink: 0; }
+.biz-section { margin-bottom: 1.4rem; }
+.biz-section-head { display: flex; align-items: center; gap: 8px; padding-bottom: 0.55rem; border-bottom: 1px solid var(--border); margin-bottom: 0.75rem; }
+.biz-section-label { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; }
+.biz-icon { font-size: 15px; color: var(--gold); }
+.empty-slot { background: var(--surface2); border: 1px dashed var(--border2); border-radius: var(--radius); padding: 0.9rem 1.1rem; font-size: 12px; color: var(--text3); line-height: 1.6; display: flex; align-items: flex-start; gap: 9px; }
+.info-banner { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.75rem 1rem; font-size: 12px; color: var(--text3); line-height: 1.6; margin-bottom: 1.25rem; display: flex; gap: 8px; align-items: flex-start; }
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 10px; }
+</style>
+</head>
+<body>
 
-python3 << 'EOF'
-with open('/mnt/user-data/outputs/index.html', 'r') as f:
-    content = f.read()
+<div id="ticker-bar">
+  <span class="ticker-label">TipOff</span>
+  <div class="ticker-sep"></div>
+  <div class="ticker-wrap"><span class="ticker-inner" id="ticker-text">Loading live stories...</span></div>
+</div>
 
-# Replace the genAnalysis function to use /api/analyze
-old_gen = """async function genAnalysis(uid) {
-  var a = articles.find(function(x){ return x.uid === uid; });
-  if (!a) return;
-  var btn = document.getElementById('btn-' + uid);
-  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="pulse"></span> Analyzing...'; }
-  try {
-    var res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:1000,
-        messages:[{ role:'user', content:'You are a sports business analyst. Analyze this article for someone breaking into sports business (agencies, NIL, partnerships, operations). Return ONLY valid JSON, no markdown, no backticks. Format: {"summary":"2-3 sentence summary","keyFacts":["fact1","fact2","fact3"],"bigPicture":"1-2 sentences on why this matters"}\\n\\nArticle: "' + a.title + '. ' + a.snippet + '"' }] })
-    });
-    var data = await res.json();
-    var raw = data.content.map(function(i){ return i.text||''; }).join('');
-    aiCache[uid] = JSON.parse(raw.replace(/```json|```/g,'').trim());
-    renderFeed();
-  } catch(e) {
-    var b = document.getElementById('btn-'+uid);
-    if(b){b.disabled=false;b.innerHTML='<i class="ti ti-sparkles"></i> Try again';}
+<div id="layout">
+  <div id="sidebar">
+    <div class="brand-wrap">
+      <div class="brand-name">TipOff</div>
+      <div class="brand-tagline">Sports Business Intel</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Feed</div>
+      <button class="nav-btn active" onclick="goTab('feed')" id="nav-feed"><i class="ti ti-news"></i> The Feed <span class="nav-badge" id="feed-count"></span></button>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Premium</div>
+      <button class="nav-btn" onclick="goTab('paste')" id="nav-paste"><i class="ti ti-clipboard-text"></i> Paste Reader</button>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Intelligence</div>
+      <button class="nav-btn" onclick="goTab('agencies')" id="nav-agencies"><i class="ti ti-building-skyscraper"></i> Agencies</button>
+      <button class="nav-btn" onclick="goTab('business')" id="nav-business"><i class="ti ti-chart-line"></i> Business & Finance</button>
+    </div>
+    <div class="sidebar-footer">
+      <span class="live-dot loading" id="live-dot"></span>
+      <span id="live-label">Loading feeds...</span>
+    </div>
+  </div>
+
+  <div id="main">
+    <div id="topbar">
+      <div id="page-title">The Feed</div>
+      <div id="page-date"></div>
+    </div>
+    <div id="content">
+
+      <div class="tab active" id="tab-feed">
+        <div class="filter-row">
+          <button class="f-btn active" onclick="setFilter('all',this)">All</button>
+          <button class="f-btn" onclick="setFilter('boardroom',this)">Boardroom</button>
+          <button class="f-btn" onclick="setFilter('espn',this)">ESPN</button>
+          <button class="f-btn" onclick="setFilter('sportico',this)">Sportico</button>
+          <button class="f-btn" onclick="setFilter('fos',this)">Front Office Sports</button>
+          <button class="f-btn" onclick="setFilter('si',this)">Sports Illustrated</button>
+          <button class="f-btn" onclick="setFilter('on3',this)">On3</button>
+          <button class="f-btn" onclick="setFilter('cbssports',this)">CBS Sports</button>
+        </div>
+        <div class="status-row">
+          <span class="pulse" id="feed-spinner"></span>
+          <span id="feed-status">Fetching live stories...</span>
+        </div>
+        <div id="feed-list"></div>
+      </div>
+
+      <div class="tab" id="tab-paste">
+        <div class="paste-box">
+          <div class="paste-title"><i class="ti ti-clipboard-text"></i> Paste an article</div>
+          <div class="paste-sub">Copy any article from WSJ, SBJ, Sportico, The Athletic, FT, or Forbes and paste below. TipOff will analyze it and save it to Business & Finance.</div>
+          <div class="outlet-row">
+            <button class="o-btn sel" onclick="pickOutlet('WSJ',this)">WSJ</button>
+            <button class="o-btn" onclick="pickOutlet('SBJ',this)">SBJ</button>
+            <button class="o-btn" onclick="pickOutlet('Sportico',this)">Sportico</button>
+            <button class="o-btn" onclick="pickOutlet('The Athletic',this)">The Athletic</button>
+            <button class="o-btn" onclick="pickOutlet('FT',this)">FT</button>
+            <button class="o-btn" onclick="pickOutlet('Forbes',this)">Forbes</button>
+          </div>
+          <textarea id="paste-input" placeholder="Paste full article text here..."></textarea>
+          <div class="paste-actions">
+            <button class="primary-btn" id="analyze-btn" onclick="runPasteAnalysis()"><i class="ti ti-sparkles"></i> Analyze article</button>
+            <span id="paste-status"></span>
+          </div>
+        </div>
+        <div id="paste-output"></div>
+      </div>
+
+      <div class="tab" id="tab-agencies">
+        <div class="agency-grid" id="agency-grid"></div>
+      </div>
+
+      <div class="tab" id="tab-business">
+        <div class="info-banner"><i class="ti ti-info-circle" style="color:var(--gold);font-size:15px;margin-top:1px;flex-shrink:0;"></i>Use the Paste Reader to add your daily WSJ, FT, and Forbes articles. They will appear here automatically once analyzed.</div>
+        <div class="biz-section">
+          <div class="biz-section-head"><i class="ti ti-trending-up biz-icon"></i><span class="biz-section-label">WSJ — Macro</span></div>
+          <div id="biz-macro"><div class="empty-slot"><i class="ti ti-clipboard"></i><span>Paste today's macro article (inflation, rates, economy) in Paste Reader, select WSJ.</span></div></div>
+        </div>
+        <div class="biz-section">
+          <div class="biz-section-head"><i class="ti ti-building-bank biz-icon"></i><span class="biz-section-label">WSJ — Industry / Transaction</span></div>
+          <div id="biz-industry"><div class="empty-slot"><i class="ti ti-clipboard"></i><span>Paste today's industry or transaction article in Paste Reader, select WSJ.</span></div></div>
+        </div>
+        <div class="biz-section">
+          <div class="biz-section-head"><i class="ti ti-pencil biz-icon"></i><span class="biz-section-label">WSJ — Op-Ed</span></div>
+          <div id="biz-oped"><div class="empty-slot"><i class="ti ti-clipboard"></i><span>Paste today's Op-Ed in Paste Reader, select WSJ.</span></div></div>
+        </div>
+        <div class="biz-section">
+          <div class="biz-section-head"><i class="ti ti-world biz-icon"></i><span class="biz-section-label">Financial Times</span></div>
+          <div id="biz-ft"><div class="empty-slot"><i class="ti ti-clipboard"></i><span>Paste an FT article in Paste Reader, select FT.</span></div></div>
+        </div>
+        <div class="biz-section">
+          <div class="biz-section-head"><i class="ti ti-medal biz-icon"></i><span class="biz-section-label">Forbes</span></div>
+          <div id="biz-forbes"><div class="empty-slot"><i class="ti ti-clipboard"></i><span>Paste a Forbes article in Paste Reader, select Forbes.</span></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const AGENCIES = [
+  { id:'af', abbr:'AF', name:'Athletes First', focus:'NFL · NBA · Coaches · Broadcasters',
+    overview:'Founded 2001, HQ Newport Beach CA. 450+ clients. In 2025, Mastry Ventures and General Catalyst acquired majority stake, buying out Dentsu which had owned one-third since 2015 at a $50M valuation.',
+    keyClients:'Dak Prescott, Aaron Rodgers, Bijan Robinson, Micah Parsons, Justin Fields, Kyle Pitts, Matt LaFleur (HC), Ryan Poles (GM)',
+    keyAgents:'David Mulugheta, Todd France ($935M+ in active NFL contracts), Tory Dandy ($1.6B+ in active NFL contracts), Gideon Cohen (media/broadcasting)',
+    moves:['Mastry Ventures and General Catalyst acquired majority stake in 2025, buying out Dentsu','Clients Bijan Robinson, Micah Parsons, Nick Emmanwori and Will Johnson traveled to Italy for Club Como 1907 engagement','Agent Gideon Cohen client Matt Ryan transitioned from CBS NFL Today host to Atlanta Falcons football operations','Has represented the most first-round NFL Draft picks for three consecutive years','Actively recruiting 2026 summer interns in Atlanta and NYC','Founder Brian Murphy remains CEO following the Mastry/General Catalyst acquisition']
+  },
+  { id:'excel', abbr:'ES', name:'Excel Sports Management', focus:'NFL · NBA · MLB · Golf · Brands',
+    overview:'Founded 2002, HQ NYC. Forbes ranked Excel #3 most valuable sports agency in 2025 with $783M in max commissions. Goldman Sachs acquired Excel in November 2025 for approximately $1B — the first time Goldman backed a talent representation business.',
+    keyClients:'Caitlin Clark, Tiger Woods, Nikola Jokic, Odell Beckham Jr.',
+    keyAgents:'Jeff Schwartz (NBA), Mark Steinberg (golf/Tiger Woods), Dennis Lyles',
+    moves:['Goldman Sachs acquired Excel in November 2025 for ~$1B — landmark PE entry into sports agency representation','Goldman acquisition sparked a wave of PE interest in agencies, directly influencing the Wasserman sale process','Acquired REP 1 Football in November 2023, expanding NFL footprint','Acquired Nolan Partners executive search firm in March 2022','Hiring for Summer 2026 Properties intern (NY) and Spring 2026 Corporate Strategy Associate (Chicago)','Forbes ranked Excel #3 most valuable sports agency in 2025 with $783M in max commissions']
+  },
+  { id:'wass', abbr:'TT', name:'The Team (formerly Wasserman)', focus:'NFL · NBA · WNBA · Music · Entertainment',
+    overview:'Founded 2002 by Casey Wasserman. Rebranded as The Team in March 2026 amid a sale process triggered by the Epstein files. Forbes ranked it #2 most valuable agency in 2025 with $956M in max commissions and 4,360 clients. Currently for sale at an estimated $2-4B valuation.',
+    keyClients:'Maxx Crosby, Geno Smith, Klay Thompson, Paige Bueckers, Breanna Stewart, Connor McDavid, Ed Sheeran, Coldplay, Kendrick Lamar, SZA',
+    keyAgents:'Casey Wasserman (stepping down), Richard Motzkin (global football EVP)',
+    moves:['Rebranded from Wasserman to The Team in March 2026 following Casey Wasserman departure','Casey Wasserman stepping down as CEO and selling his stake — Providence Equity Partners owns 60%','Retained Moelis and Co. to advise on sale; expected price $2-4B with PE bidders including Permira, EQT, TA Associates','Clients Chappell Roan and Abby Wambach departed following the scandal','Acquired Barcelona-based Unik Sports Management in Feb 2026 to expand women\'s football presence','Brought on by WTA Ventures in Dec 2025 to secure new Premier Partner title sponsor replacing Hologic']
+  },
+  { id:'caa', abbr:'CAA', name:'CAA Sports', focus:'NFL · NBA · MLB · NHL · Media',
+    overview:'Forbes #1 most valuable sports agency in 2025 with $1.14B in max commissions (up 18% in 3 years), $15.9B in playing contracts. Majority stake acquired by Francois-Henri Pinault in 2023 at a reported $7B valuation. TPG is also an investor.',
+    keyClients:'Shohei Ohtani, Josh Allen, Devin Booker. Tom Condon clients average $40M contract value each.',
+    keyAgents:'Howie Nuchow (co-head sports), Tom Condon (NFL), Lee Steinberg',
+    moves:['Forbes ranked CAA #1 most valuable sports agency in 2025 — 10th consecutive year at the top','CAA Sports co-head Howie Nuchow announced major PE push into sports property stakes at National Sports Forum Feb 2026','TPG backs CAA and collected $750M for its upcoming sports fund','Did not submit a bid for Wasserman/The Team per reports','Appointed nine new managing directors and refreshed agency board','Tom Condon represents Josh Allen ($258M/6yr) — most valuable single active client contract at any agency']
+  },
+  { id:'win', abbr:'WIN', name:'WIN Sports Group', focus:'NFL · Coaches · Executives',
+    overview:'Launched May 2025 by Patrick Whitesell (former Endeavor executive chairman) after acquiring WME football division when Silver Lake became Endeavor majority owner. Built with full senior WME Sports football team. NFLPA-cleared and fully operational.',
+    keyClients:'Joe Burrow, Justin Jefferson, Nick Bosa',
+    keyAgents:'Patrick Whitesell (founder/CEO), Brian Ayrault, Ben Renzin, Joel Segal',
+    moves:['Launched May 2025 — Whitesell acquired WME entire NFL football division after Silver Lake Endeavor privatization','NFLPA completed conflict-of-interest review and cleared WIN Sports Group to operate','Launched with marquee clients Joe Burrow, Justin Jefferson, and Nick Bosa from WME Sports','Patrick Whitesell submitted bid for Wasserman/The Team in April 2026 — would be transformative if successful','Co-founded with ex-Endeavor exec Jason Lublin; building coaches and executive representation','Most significant new football agency launch in years']
+  },
+  { id:'wme', abbr:'WME', name:'WME Sports', focus:'NBA · WNBA · Tennis · Boxing · Brands',
+    overview:'Part of WME Group (Silver Lake majority owner after Endeavor privatization March 2025). Divested football division to WIN Sports Group May 2025. Sold 160over90 sports marketing agency to Publicis Groupe for $500M+ in April 2026.',
+    keyClients:'Luka Doncic (brand/media representation)',
+    keyAgents:'Mark Shapiro (President, WME Group)',
+    moves:['Silver Lake became majority owner of Endeavor in March 2025 — triggered divestiture of football division to WIN Sports Group','Sold 160over90 sports marketing agency to Publicis Groupe for $500M+ in April 2026','Strategic partnership formed with Publicis following 160over90 sale','WME Sports signed Luka Doncic for brand/media representation','Made first foray into WNBA on-court player representation','Did not submit a bid for Wasserman/The Team per reports']
+  },
+  { id:'oct', abbr:'OC', name:'Octagon', focus:'NBA · NHL · Olympics · Sponsorship',
+    overview:'Founded 1983. HQ Stamford CT. Now part of Omnicom Group after IPG was acquired by Omnicom in 2025. Forbes ranked #4 most valuable agency in 2025 with $463M in max commissions — up 119% since 2022.',
+    keyClients:'Stephen Curry, Simone Biles, Leon Draisaitl',
+    keyAgents:'John Shea (CEO), Phil de Picciotto (President/founder)',
+    moves:['Became part of Omnicom Group in 2025 after Omnicom acquired parent company IPG','Forbes ranked Octagon #4 most valuable sports agency in 2025 at $463M max commissions, up 119% from 2022','Promoted Alyssa Romano to Chief Marketing Officer','Manages $3.5B+ in client sports sponsorship spending across leagues and media platforms','Oversees $4B+ in total deals with heavy NBA and NHL presence','Launched No2ndPlace in 2022 focused on athlete activism and social issues']
+  },
+  { id:'klutch', abbr:'KL', name:'Klutch Sports Group', focus:'NBA · NFL · WNBA · MLB · Global Football',
+    overview:'Founded 2012 by Rich Paul. HQ Los Angeles. Part of UTA (United Talent Agency). Forbes ranked Klutch #5 most valuable agency in 2025 with $351M in max commissions — up 252% since 2022, fastest growth of any major agency.',
+    keyClients:'LeBron James, Anthony Davis, Jalen Hurts, Draymond Green, Alijah Arenas (USC 2025 recruit)',
+    keyAgents:'Rich Paul (CEO/founder), Fara Leff (COO), Nicole Lynn (President of Football)',
+    moves:['Forbes ranked Klutch #5 most valuable agency in 2025 at $351M max commissions — 252% growth since 2022','UTA acquired Germany ROOF soccer agency in June 2024 and integrated into Klutch Global Football division','Signed USC 5-star recruit Alijah Arenas (son of Gilbert Arenas) ahead of the 2025 season','Strategic UTA partnership expanded non-playing contract value across entertainment and brand deals','Nicole Lynn leads NFL division — one of the most prominent female football agents in the industry','Now manages over $7B in total athlete deals across NBA, NFL, MLB, and soccer']
+  },
+  { id:'lift', abbr:'LI', name:'LIFT Sports Management', focus:'NFL · College Football · NIL',
+    overview:'A growing football-focused boutique agency with strong emphasis on the college-to-pro pipeline and NIL advisory services for pre-draft clients.',
+    keyClients:'Emerging NFL draft class clients, undrafted free agents',
+    keyAgents:'Building out football representation team with front office consulting additions',
+    moves:['Expanding college advisory practice with focus on pre-enrollment NIL services','Partnered with NIL collective to provide bundled representation and NIL deal services','Hired former NFL GM as senior football consultant — adding front office credibility','Signed top undrafted free agent client following 2025 rookie mini-camp','Building recruiting infrastructure to compete with larger agencies for draft class clients','Focus on college-to-pro pipeline differentiates LIFT from agencies focused solely on NFL veterans']
+  },
+  { id:'fam', abbr:'TF', name:'The Familie', focus:'NFL · College Football · NIL',
+    overview:'Boutique football agency known for a deeply personal service model and strong client relationships. Hands-on approach to both on-field contract work and off-field opportunities.',
+    keyClients:'NFL players and college football prospects across skill positions',
+    keyAgents:'Founder-led boutique model with small dedicated team',
+    moves:['Expanding NIL advisory capability for college football clients','Signed two Power Five wide receivers ahead of the NFL Draft cycle','Secured apparel brand partnership opportunity for a current client','Expanded client services team adding hospitality and lifestyle support for players','Competing with larger agencies by emphasizing personalized service model','Building relationships with NIL collectives to offer bundled services to recruiting targets']
+  },
+  { id:'ise', abbr:'ISE', name:'Independent Sports & Entertainment', focus:'NFL · MLB · NHL · Multi-Sport',
+    overview:'Full-service multi-sport agency handling NFL, MLB, and NHL client representation. Known for a strong veteran client roster and deep relationships across front offices in multiple leagues.',
+    keyClients:'Veteran NFL offensive linemen, MLB players, Canadian junior hockey prospects',
+    keyAgents:'Multi-sport team with league-specific specialists across NFL, MLB, and NHL',
+    moves:['Closed multi-year extension for veteran NFL offensive lineman client','Signed Canadian hockey prospect following strong OHL season','Launched sports business advisory practice for athlete entrepreneurs','Hired director of marketing partnerships from a major sports brand','Multi-sport model insulates ISE from league-specific downturns','Building out executive search capability across NFL, MLB, and NHL']
   }
-}"""
+];
 
-new_gen = """async function genAnalysis(uid) {
+let articles = [];
+let currentFilter = 'all';
+let openCards = new Set();
+let aiCache = {};
+let selectedOutlet = 'WSJ';
+let pasteHistory = [];
+let openAgencies = new Set();
+let wsjSlots = { macro: null, industry: null, oped: null };
+let bizArticles = { ft: [], forbes: [], sbj: [], sportico: [], athletic: [] };
+
+function goTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  const titles = { feed:'The Feed', paste:'Paste Reader', agencies:'Agency Tracker', business:'Business & Finance' };
+  document.getElementById('page-title').textContent = titles[name];
+}
+
+function setFilter(key, btn) {
+  currentFilter = key;
+  document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderFeed();
+}
+
+function pickOutlet(name, btn) {
+  selectedOutlet = name;
+  document.querySelectorAll('.o-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+
+function timeAgo(str) {
+  if (!str) return '';
+  const d = new Date(str);
+  if (isNaN(d)) return '';
+  const m = Math.floor((Date.now() - d) / 60000);
+  if (m < 60) return m + 'm ago';
+  if (m < 1440) return Math.floor(m/60) + 'h ago';
+  return Math.floor(m/1440) + 'd ago';
+}
+
+function analysisHtml(d) {
+  return '<div class="ai-section"><div class="ai-section-title">Summary</div><div class="ai-text">' + d.summary + '</div></div>' +
+    '<div class="ai-section"><div class="ai-section-title">Key facts</div><div class="key-facts">' + (d.keyFacts||[]).map(function(f){return '<div class="kf">'+f+'</div>';}).join('') + '</div></div>' +
+    '<div class="ai-section"><div class="ai-section-title">Big picture</div><div class="ai-text">' + d.bigPicture + '</div></div>';
+}
+
+function badgeClass(key) {
+  var map = {boardroom:'b-boardroom',espn:'b-espn',sportico:'b-sportico',fos:'b-fos',si:'b-si',on3:'b-on3',cbssports:'b-cbssports',WSJ:'b-wsj',FT:'b-ft',Forbes:'b-forbes',SBJ:'b-sbj','The Athletic':'b-athletic',Sportico:'b-sportico2'};
+  return map[key] || 'b-paste';
+}
+
+function renderFeed() {
+  var list = document.getElementById('feed-list');
+  var filtered = currentFilter === 'all' ? articles : articles.filter(function(a){ return a.key === currentFilter; });
+  if (!filtered.length) {
+    list.innerHTML = '<div style="font-size:13px;color:var(--text3);padding:1rem 0;">No stories available yet.</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(function(a) {
+    var isOpen = openCards.has(a.uid);
+    var cached = aiCache[a.uid];
+    return '<div class="card' + (isOpen?' open':'') + '" onclick="toggleCard(\'' + a.uid + '\')" id="c-' + a.uid + '">' +
+      '<div class="card-meta"><span class="badge ' + badgeClass(a.key) + '">' + a.name + '</span><span class="card-time">' + timeAgo(a.pubDate) + '</span></div>' +
+      '<div class="card-title">' + (a.link ? '<a href="' + a.link + '" target="_blank" onclick="event.stopPropagation()">' + a.title + '</a>' : a.title) + '</div>' +
+      (a.snippet ? '<div class="card-snippet">' + a.snippet + '</div>' : '') +
+      '<div class="analysis-wrap"><div class="ai-label"><i class="ti ti-sparkles"></i> AI Analysis</div>' +
+      (cached ? analysisHtml(cached) : '<button class="gen-btn" id="btn-' + a.uid + '" onclick="event.stopPropagation();genAnalysis(\'' + a.uid + '\')"><i class="ti ti-sparkles"></i> Generate analysis</button>') +
+      '</div></div>';
+  }).join('');
+}
+
+function toggleCard(uid) {
+  if (openCards.has(uid)) openCards.delete(uid); else openCards.add(uid);
+  renderFeed();
+}
+
+async function genAnalysis(uid) {
   var a = articles.find(function(x){ return x.uid === uid; });
   if (!a) return;
   var btn = document.getElementById('btn-' + uid);
@@ -45,39 +406,9 @@ new_gen = """async function genAnalysis(uid) {
     var b = document.getElementById('btn-'+uid);
     if(b){b.disabled=false;b.innerHTML='<i class="ti ti-sparkles"></i> Try again';}
   }
-}"""
+}
 
-# Replace the runPasteAnalysis function
-old_paste = """async function runPasteAnalysis() {
-  var text = document.getElementById('paste-input').value.trim();
-  if (text.length < 80) { document.getElementById('paste-status').textContent = 'Please paste a full article.'; return; }
-  var btn = document.getElementById('analyze-btn');
-  var statusEl = document.getElementById('paste-status');
-  btn.disabled = true; btn.innerHTML = '<span class="pulse"></span> Analyzing...';
-  statusEl.textContent = '';
-  try {
-    var res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:1200,
-        messages:[{ role:'user', content:'You are a business and sports business analyst. Analyze this article. Return ONLY valid JSON, no markdown, no backticks. Format: {"title":"concise inferred article title","summary":"2-3 sentence summary","keyFacts":["fact1","fact2","fact3","fact4"],"bigPicture":"1-2 sentences on broader significance"}\\n\\nSource: ' + selectedOutlet + '\\nText:\\n' + text.slice(0,3500) }] })
-    });
-    var data = await res.json();
-    var raw = data.content.map(function(i){ return i.text||''; }).join('');
-    var parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
-    var article = Object.assign({ uid:'p-'+Date.now(), outlet: selectedOutlet }, parsed);
-    pasteHistory.unshift(article);
-    routeToBusinessTab(article);
-    renderPasteOutput(article);
-    document.getElementById('paste-input').value = '';
-    statusEl.textContent = 'Saved to Business & Finance';
-    setTimeout(function(){ statusEl.textContent=''; }, 3000);
-  } catch(e) {
-    statusEl.textContent = 'Error — please try again.';
-  }
-  btn.disabled = false; btn.innerHTML = '<i class="ti ti-sparkles"></i> Analyze article';
-}"""
-
-new_paste = """async function runPasteAnalysis() {
+async function runPasteAnalysis() {
   var text = document.getElementById('paste-input').value.trim();
   if (text.length < 80) { document.getElementById('paste-status').textContent = 'Please paste a full article.'; return; }
   var btn = document.getElementById('analyze-btn');
@@ -102,26 +433,114 @@ new_paste = """async function runPasteAnalysis() {
     statusEl.textContent = 'Error — please try again.';
   }
   btn.disabled = false; btn.innerHTML = '<i class="ti ti-sparkles"></i> Analyze article';
-}"""
+}
 
-if old_gen in content:
-    content = content.replace(old_gen, new_gen)
-    print("SUCCESS: genAnalysis updated")
-else:
-    print("NOT FOUND: genAnalysis")
+function routeToBusinessTab(article) {
+  var o = article.outlet.toLowerCase();
+  var t = (article.title + ' ' + article.summary).toLowerCase();
+  if (o === 'wsj') {
+    if (!wsjSlots.macro && (t.includes('inflation')||t.includes('rate')||t.includes('fed ')||t.includes('gdp')||t.includes('economy')||t.includes('cpi'))) {
+      wsjSlots.macro = article;
+    } else if (!wsjSlots.oped && (t.includes('opinion')||t.includes('op-ed')||t.includes('editorial')||t.includes('column')||t.includes('argues'))) {
+      wsjSlots.oped = article;
+    } else {
+      wsjSlots.industry = article;
+    }
+  } else if (o === 'ft') {
+    bizArticles.ft.unshift(article);
+  } else if (o === 'forbes') {
+    bizArticles.forbes.unshift(article);
+  }
+  renderBizSlots();
+}
 
-if old_paste in content:
-    content = content.replace(old_paste, new_paste)
-    print("SUCCESS: runPasteAnalysis updated")
-else:
-    print("NOT FOUND: runPasteAnalysis")
+function pasteCardHtml(article) {
+  return '<div class="card open" style="cursor:default;">' +
+    '<div class="card-meta"><span class="badge ' + badgeClass(article.outlet) + '">' + article.outlet + '</span><span class="card-time">Today</span></div>' +
+    '<div class="card-title">' + article.title + '</div>' +
+    '<div class="analysis-wrap" style="display:block;"><div class="ai-label"><i class="ti ti-sparkles"></i> AI Analysis</div>' + analysisHtml(article) + '</div></div>';
+}
 
-with open('/mnt/user-data/outputs/index.html', 'w') as f:
-    f.write(content)
-print("Done")
-EOF
-Output
+function renderBizSlots() {
+  var slots = [
+    { id:'biz-macro', article:wsjSlots.macro, placeholder:'Paste today\'s macro article (inflation, rates, economy) in Paste Reader, select WSJ.' },
+    { id:'biz-industry', article:wsjSlots.industry, placeholder:'Paste today\'s industry or transaction article in Paste Reader, select WSJ.' },
+    { id:'biz-oped', article:wsjSlots.oped, placeholder:'Paste today\'s Op-Ed in Paste Reader, select WSJ.' },
+  ];
+  slots.forEach(function(s) {
+    var el = document.getElementById(s.id);
+    if (!el) return;
+    el.innerHTML = s.article ? pasteCardHtml(s.article) : '<div class="empty-slot"><i class="ti ti-clipboard"></i><span>' + s.placeholder + '</span></div>';
+  });
+  [['biz-ft','ft','FT'],['biz-forbes','forbes','Forbes']].forEach(function(row) {
+    var el = document.getElementById(row[0]);
+    if (!el) return;
+    var arr = bizArticles[row[1]];
+    el.innerHTML = arr.length ? arr.map(pasteCardHtml).join('') : '<div class="empty-slot"><i class="ti ti-clipboard"></i><span>Paste a ' + row[2] + ' article in Paste Reader, select ' + row[2] + '.</span></div>';
+  });
+}
 
-SUCCESS: genAnalysis updated
-SUCCESS: runPasteAnalysis updated
-Done
+function renderPasteOutput(article) {
+  document.getElementById('paste-output').innerHTML =
+    '<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.65rem;">Latest analysis</div>' +
+    pasteCardHtml(article);
+}
+
+function renderAgencies() {
+  document.getElementById('agency-grid').innerHTML = AGENCIES.map(function(a) {
+    return '<div class="agency-card' + (openAgencies.has(a.id)?' open':'') + '" onclick="toggleAgency(\'' + a.id + '\')">' +
+      '<div class="agency-head"><div class="agency-avatar">' + a.abbr + '</div>' +
+      '<div><div class="agency-name">' + a.name + '</div><div class="agency-focus">' + a.focus + '</div></div></div>' +
+      '<div class="agency-body">' +
+      '<div class="agency-overview">' + a.overview + '</div>' +
+      '<div class="agency-section"><div class="agency-section-label">Key clients</div><div class="agency-section-text">' + a.keyClients + '</div></div>' +
+      '<div class="agency-section" style="margin-bottom:0.75rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border);"><div class="agency-section-label">Key agents</div><div class="agency-section-text">' + a.keyAgents + '</div></div>' +
+      '<div class="moves-label">Recent moves & intel</div>' +
+      a.moves.map(function(m){ return '<div class="move"><div class="move-dot"></div><div>' + m + '</div></div>'; }).join('') +
+      '</div></div>';
+  }).join('');
+}
+
+function toggleAgency(id) {
+  if (openAgencies.has(id)) openAgencies.delete(id); else openAgencies.add(id);
+  renderAgencies();
+}
+
+async function loadFeeds() {
+  try {
+    var res = await fetch('/api/feeds');
+    var data = await res.json();
+    if (data.success && data.articles.length) {
+      articles = data.articles;
+      var dot = document.getElementById('live-dot');
+      dot.classList.remove('loading');
+      document.getElementById('live-label').textContent = 'Live · ' + articles.length + ' stories';
+      document.getElementById('feed-status').textContent = articles.length + ' stories loaded';
+      document.getElementById('feed-spinner').style.display = 'none';
+      var badge = document.getElementById('feed-count');
+      badge.textContent = articles.length;
+      badge.style.display = 'inline';
+      document.getElementById('ticker-text').textContent = articles.slice(0,8).map(function(a){ return a.title; }).join('   ·   ');
+      renderFeed();
+    } else {
+      throw new Error('no articles');
+    }
+  } catch(e) {
+    document.getElementById('live-dot').style.background = '#f87171';
+    document.getElementById('live-label').textContent = 'Feed error';
+    document.getElementById('feed-status').textContent = 'Could not load stories. Try refreshing.';
+    document.getElementById('feed-spinner').style.display = 'none';
+  }
+}
+
+function init() {
+  document.getElementById('page-date').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  renderAgencies();
+  renderBizSlots();
+  loadFeeds();
+}
+
+init();
+</script>
+</body>
+</html>
