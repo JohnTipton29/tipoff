@@ -7,6 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
 
 const FEEDS = [
   { key: 'boardroom',  name: 'Boardroom',          url: 'https://boardroom.tv/feed/' },
@@ -44,7 +45,7 @@ async function fetchFeed(feed) {
       pubDate: item.pubDate || ''
     }));
   } catch (e) {
-    console.log(`Failed to fetch ${feed.name}:`, e.message);
+    console.log('Failed to fetch ' + feed.name + ':', e.message);
     return [];
   }
 }
@@ -61,8 +62,71 @@ app.get('/api/feeds', async (req, res) => {
   }
 });
 
+app.post('/api/analyze', async (req, res) => {
+  const { title, snippet, type } = req.body;
+  if (!title) return res.json({ success: false, error: 'No content provided' });
+
+  const isBusiness = type === 'business';
+  const prompt = isBusiness
+    ? 'You are a business analyst. Analyze this article for someone building general business literacy. Return ONLY valid JSON, no markdown, no backticks. Format: {"summary":"2-3 sentence summary","keyFacts":["fact1","fact2","fact3"],"bigPicture":"1-2 sentences on broader significance"}\n\nArticle: "' + title + '. ' + (snippet || '') + '"'
+    : 'You are a sports business analyst. Analyze this article for someone breaking into sports business (agencies, NIL, partnerships, operations). Return ONLY valid JSON, no markdown, no backticks. Format: {"summary":"2-3 sentence summary","keyFacts":["fact1","fact2","fact3"],"bigPicture":"1-2 sentences on why this matters in sports business"}\n\nArticle: "' + title + '. ' + (snippet || '') + '"';
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const raw = data.content.map(i => i.text || '').join('');
+    const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    res.json({ success: true, analysis: parsed });
+  } catch (e) {
+    console.log('Analysis error:', e.message);
+    res.json({ success: false, error: e.message });
+  }
+});
+
+app.post('/api/analyze-paste', async (req, res) => {
+  const { text, outlet } = req.body;
+  if (!text) return res.json({ success: false, error: 'No text provided' });
+
+  const prompt = 'You are a business and sports business analyst. Analyze this article. Return ONLY valid JSON, no markdown, no backticks. Format: {"title":"concise inferred article title","summary":"2-3 sentence summary","keyFacts":["fact1","fact2","fact3","fact4"],"bigPicture":"1-2 sentences on broader significance"}\n\nSource: ' + outlet + '\nText:\n' + text.slice(0, 3500);
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1200,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const raw = data.content.map(i => i.text || '').join('');
+    const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    res.json({ success: true, analysis: parsed });
+  } catch (e) {
+    console.log('Paste analysis error:', e.message);
+    res.json({ success: false, error: e.message });
+  }
+});
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => console.log(`TipOff running on port ${PORT}`));
+app.listen(PORT, () => console.log('TipOff running on port ' + PORT));
