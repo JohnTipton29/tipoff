@@ -80,12 +80,16 @@ app.post('/api/analyze', async (req, res) => {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: 'claude-haiku-20240307',
         max_tokens: 1000,
         messages: [{ role: 'user', content: prompt }]
       })
     });
     const data = await response.json();
+    console.log('Anthropic response:', JSON.stringify(data).slice(0, 300));
+    if (!data.content || !Array.isArray(data.content)) {
+      throw new Error('Invalid API response: ' + JSON.stringify(data).slice(0, 200));
+    }
     const raw = data.content.map(i => i.text || '').join('');
     const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
     res.json({ success: true, analysis: parsed });
@@ -110,12 +114,16 @@ app.post('/api/analyze-paste', async (req, res) => {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: 'claude-haiku-20240307',
         max_tokens: 1200,
         messages: [{ role: 'user', content: prompt }]
       })
     });
     const data = await response.json();
+    console.log('Anthropic paste response:', JSON.stringify(data).slice(0, 300));
+    if (!data.content || !Array.isArray(data.content)) {
+      throw new Error('Invalid API response: ' + JSON.stringify(data).slice(0, 200));
+    }
     const raw = data.content.map(i => i.text || '').join('');
     const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
     res.json({ success: true, analysis: parsed });
